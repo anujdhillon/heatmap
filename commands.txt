@@ -1,0 +1,23 @@
+virtualenv venv
+venv\Scripts\activate
+
+------
+pip install wheel
+pip install pipwin
+
+pipwin install numpy
+pipwin install pandas
+pipwin install shapely
+pipwin install gdal
+pipwin install fiona
+pipwin install pyproj
+pipwin install six
+pipwin install rtree
+pipwin install geopandas
+pip install matplotlib
+pip install seaborn
+------
+if above doesn't work, then first do following then try again
+
+pip uninstall wheel
+pip uninstall pipwin
