@@ -21,3 +21,12 @@ if above doesn't work, then first do following then try again
 
 pip uninstall wheel
 pip uninstall pipwin
+
+-------
+
+pip install plotly
+pip install dash
+pip install jupyter-dash
+------
+To run
+python main.py
