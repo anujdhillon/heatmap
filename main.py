@@ -12,17 +12,21 @@ from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
 df = pd.read_csv('data.csv')
-criteria = [df['Goal 2 Score'].between(0, 33), df['Goal 2 Score'].between(34, 66), df['Goal 2 Score'].between(66, 100)]
+criteria = [df['G'].between(0, 33), df['G'].between(34, 66), df['G'].between(66, 100)]
 names = ["Aspirant","Performer","Front Runner","Achiever"]
 bins = [0,49.99,64.99,99.99,np.inf]
-df['Category'] = pd.cut(df['Goal 2 Score'],bins,labels=names)
+df['Category'] = pd.cut(df['G'],bins,labels=names)
 nb = 'shapefile\RAjasthan_admin_Dist_Boundary.shp'
 map_df = gpd.read_file(nb)
 map_df.to_crs(pyproj.CRS.from_epsg(4326), inplace=True)
 merged = map_df.set_index('DIST_NAME').join(df.set_index('DIST_NAME'))
-fig = px.choropleth(merged, geojson=merged.geometry, locations=merged.index, color=df['Category'],color_discrete_map={'Achiever':'#00AEEF','Front Runner': '#00A084','Performer': '#FFC40C','Aspirant': '#DE1D45'})
+fig = px.choropleth(merged, geojson=merged.geometry, locations=merged.index, color=df['Category'],color_discrete_map={'Achiever':'#00AEEF','Front Runner': '#00A084','Performer': '#FFC40C','Aspirant': '#DE1D45'}, hover_name=merged.index)
 fig.update_geos(fitbounds="locations", visible=False)
 #fig.add_scattergeo(lat=merged['Latitude'], lon=merged['Longitude'],text="DIST_NAME",showlegend=False)
+fig.update_layout(
+    autosize=False,
+    width=1280,
+    height=720,)
 fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
               lat=merged["Latitude"],
               text=merged.index,
@@ -31,7 +35,9 @@ fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
                textfont=dict(
             color='white',
             size=12,
+            
         ),
+        hoverinfo=None,
               showlegend=False))
 #fig.write_html("map_html.html") to save html
 #fig.show() #to open in the browser
