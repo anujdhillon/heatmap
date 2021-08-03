@@ -11,18 +11,28 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
-reverse_indicators = ["Percentage of the children aged under 5 years who are stunted"]
-
+colour_map = {'Achiever':'#00AEEF','Front Runner': '#00A084','Performer': '#FFC40C','Aspirant': '#DE1D45','NA': '#000000'}
+reverse_indicators = ["Percentage of the children aged under 5 years who are stunted"] #Add names of reversed indicators here
+names = ["NA","Aspirant","Performer","Front Runner","Achiever"]
+bins = [0,1,49.99,64.99,99.99,np.inf]
 
 goal = "Percentage of the children aged under 5 years who are stunted"
 label_colour = "#007efc"
 colorscale = 'Reds'
+
+def get_complementary(category):
+    color = colour_map[category]
+    color = color[1:]
+    color = int(color, 16)
+    comp_color = 0xFFFFFF ^ color
+    comp_color = "#%06X" % comp_color
+    return comp_color
+
 if(goal in reverse_indicators):
     colorscale += "_r"
+    names = ["NA","Achiever","Front Runner","Performer","Aspirant"]
 
 df = pd.read_csv('data.csv')
-names = ["NA","Aspirant","Performer","Front Runner","Achiever"]
-bins = [0,1,49.99,64.99,99.99,np.inf]
 df['Category'] = pd.cut(df[goal],bins,labels=names)
 nb = 'shapefile\RAjasthan_admin_Dist_Boundary.shp'
 map_df = gpd.read_file(nb)
@@ -75,6 +85,7 @@ fig.update_layout(
 
 #fig.add_scattergeo(lat=merged['Latitude'], lon=merged['Longitude'],text="DIST_NAME",showlegend=False)
 fig.update_layout(coloraxis_showscale=False)
+
 fig2 = px.choropleth(
         df, geojson=merged.geometry,
         hover_name="DIST_NAME",
@@ -84,7 +95,7 @@ fig2 = px.choropleth(
             goal: True,
         },
         color="Category",
-        color_discrete_map={'Achiever':'#00AEEF','Front Runner': '#00A084','Performer': '#FFC40C','Aspirant': '#DE1D45','NA': 'black'},
+        color_discrete_map=colour_map,
         locations="DIST_NAME",
         title=goal,
         )
@@ -114,7 +125,7 @@ fig2.add_trace(go.Scattergeo(lon=merged["Longitude"],
               textposition="middle right",
                mode='text',
                textfont=dict(
-            color=label_colour,
+            color=merged['Category'].map(get_complementary),
             size=12,
             
         ),
