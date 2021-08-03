@@ -13,6 +13,8 @@ from jupyter_dash import JupyterDash
 
 
 goal = "Percentage of the children aged under 5 years who are stunted"
+label_colour = "#007efc"
+
 
 df = pd.read_csv('data.csv')
 names = ["NA","Aspirant","Performer","Front Runner","Achiever"]
@@ -32,7 +34,7 @@ fig = px.choropleth(
         color=goal,
         color_continuous_scale='Reds',
         locations="DIST_NAME",
-        title=goal
+        title=goal,
         )
 fig.update_geos(fitbounds="locations", visible=False)
 fig.update_layout(
@@ -58,10 +60,14 @@ fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
     textposition="middle right",
     mode='text',
     textfont=dict(
-    color='white',
+    color=label_colour,
     size=12,
 ), hoverinfo="skip",
     showlegend=False))
+fig.update_layout(
+    autosize=False,
+    height=720,
+    width=1080)
 #fig.add_scattergeo(lat=merged['Latitude'], lon=merged['Longitude'],text="DIST_NAME",showlegend=False)
 fig.update_layout(coloraxis_showscale=False)
 fig2 = px.choropleth(
@@ -75,7 +81,7 @@ fig2 = px.choropleth(
         color="Category",
         color_discrete_map={'Achiever':'#00AEEF','Front Runner': '#00A084','Performer': '#FFC40C','Aspirant': '#DE1D45','NA': 'black'},
         locations="DIST_NAME",
-        title=goal
+        title=goal,
         )
 fig2.update_geos(fitbounds="locations", visible=False)
 fig2.update_layout(
@@ -85,6 +91,7 @@ fig2.update_layout(
         font_family="Rockwell"
     )
 )
+fig2.update_layout(showlegend=False)
 fig2.add_trace(go.Scattergeo(lon=merged["Longitude"],
     lat=merged["Latitude"],
     text='<a style="text-decoration: none;" href="https://google.com">'+merged.index+'</a>',
@@ -102,13 +109,16 @@ fig2.add_trace(go.Scattergeo(lon=merged["Longitude"],
               textposition="middle right",
                mode='text',
                textfont=dict(
-            color='white',
+            color=label_colour,
             size=12,
             
         ),
         hoverinfo="skip",
               showlegend=False))
-
+fig2.update_layout(
+    autosize=False,
+    height=720,
+    width=1080)
 #fig.write_html("map_html.html") to save html
 #fig.show() #to open in the browser
 
