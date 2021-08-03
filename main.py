@@ -11,10 +11,14 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
+reverse_indicators = ["Percentage of the children aged under 5 years who are stunted"]
+
 
 goal = "Percentage of the children aged under 5 years who are stunted"
 label_colour = "#007efc"
-
+colorscale = 'Reds'
+if(goal in reverse_indicators):
+    colorscale += "_r"
 
 df = pd.read_csv('data.csv')
 names = ["NA","Aspirant","Performer","Front Runner","Achiever"]
@@ -32,7 +36,7 @@ fig = px.choropleth(
             goal: True,
         },
         color=goal,
-        color_continuous_scale='Reds',
+        color_continuous_scale=colorscale,
         locations="DIST_NAME",
         title=goal,
         )
@@ -68,6 +72,7 @@ fig.update_layout(
     autosize=False,
     height=720,
     width=1080)
+
 #fig.add_scattergeo(lat=merged['Latitude'], lon=merged['Longitude'],text="DIST_NAME",showlegend=False)
 fig.update_layout(coloraxis_showscale=False)
 fig2 = px.choropleth(
