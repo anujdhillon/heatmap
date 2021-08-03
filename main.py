@@ -1,3 +1,4 @@
+from dash_html_components.Div import Div
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
@@ -34,10 +35,17 @@ app.layout = html.Div([
                  for x in goals],
         value=goals[0],
         labelStyle={'display': 'block'}
-    ),    
+    ),html.Div(children=[
+            dcc.Graph(
+        id='choropleth-categorise',
+    ),
     dcc.Graph(
-        id='choropleth',
+        id='choropleth-continuous',
     )
+    ], style={
+        'display': 'flex',
+        'alignItems': 'center',
+    })  
 ])
 
 #-------------------------------#
@@ -51,7 +59,7 @@ app.layout = html.Div([
 #         print("You clicked",location)
         
 @app.callback(
-    Output("choropleth", "figure"), 
+    Output("choropleth-categorise", "figure"), 
     [Input("goal", "value")])
 def display_choropleth(goal):
     df['Category'] = pd.cut(df[goal],bins,labels=names)
@@ -75,7 +83,43 @@ def display_choropleth(goal):
         font_family="Rockwell"
     )
 )
-    fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
+    fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
+                lat=merged["Latitude"],
+                text='<a style="text-decoration: none;" href="https://google.com">'+merged.index+'</a>',
+                textposition="middle right",
+                mode='text',
+                textfont=dict(
+                color='white',
+                size=12,
+            ), hoverinfo="skip",
+                showlegend=False))
+    return fig
+
+@app.callback(
+    Output("choropleth-continuous", "figure"), 
+    [Input("goal", "value")])
+def display_choropleth2(goal):
+    fig = px.choropleth(
+        df, geojson=merged.geometry,
+        hover_name="DIST_NAME",
+        hover_data={
+            'DIST_NAME': False,
+            goal: True,
+        },
+        color=goal,
+        color_continuous_scale='Reds',
+        color_continuous_midpoint=50,
+        locations="DIST_NAME",
+        )
+    fig.update_geos(fitbounds="locations", visible=False)
+    fig.update_layout(
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=16,
+        font_family="Rockwell"
+    )
+)
+    fig.update_layout(coloraxis_showscale=False)
     fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
                 lat=merged["Latitude"],
                 text='<a style="text-decoration: none;" href="https://google.com">'+merged.index+'</a>',
