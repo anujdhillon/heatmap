@@ -142,11 +142,17 @@ app = JupyterDash(__name__)
 app.layout = html.Div(children=[    
     dcc.Graph(
         id='choropleth',
-        figure=fig
+        figure=fig,
+        config={
+            'displaylogo': False
+        }
     ),
     dcc.Graph(
         id='choropleth2',
-        figure=fig2
+        figure=fig2,
+        config={
+            'displaylogo': False
+        }
     )
 ],style={'display':'flex'})
 
