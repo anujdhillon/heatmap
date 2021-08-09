@@ -11,150 +11,79 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
-colour_map = {'Achiever':'#00AEEF','Front Runner': '#00A084','Performer': '#FFC40C','Aspirant': '#DE1D45','NA': '#000000'}
-reverse_indicators = ["Percentage of the children aged under 5 years who are stunted"] #Add names of reversed indicators here
-names = ["NA","Aspirant","Performer","Front Runner","Achiever"]
-bins = [0,1,49.99,64.99,99.99,np.inf]
-
-goal = "Percentage of the children aged under 5 years who are stunted"
-label_colour = "#007efc"
-colorscale = 'Reds'
-
-def get_complementary(category):
-    color = colour_map[category]
-    color = color[1:]
-    color = int(color, 16)
-    comp_color = 0xFFFFFF ^ color
-    comp_color = "#%06X" % comp_color
-    return comp_color
-
-if(goal in reverse_indicators):
-    colorscale += "_r"
-    names = ["NA","Achiever","Front Runner","Performer","Aspirant"]
+app = JupyterDash(__name__)
 
 df = pd.read_csv('data.csv')
-df['Category'] = pd.cut(df[goal],bins,labels=names)
 nb = 'shapefile\RAjasthan_admin_Dist_Boundary.shp'
 map_df = gpd.read_file(nb)
 map_df.to_crs(pyproj.CRS.from_epsg(4326), inplace=True)
-merged = map_df.set_index('DIST_NAME').join(df.set_index('DIST_NAME'))
-fig = px.choropleth(
-        df, geojson=merged.geometry,
-        hover_name="DIST_NAME",
-        hover_data={
-            'DIST_NAME': False,
-            goal: True,
-        },
-        color=goal,
-        color_continuous_scale=colorscale,
-        locations="DIST_NAME",
-        title=goal,
+
+goals = list(df.columns)[1:-2]
+graphs = []
+
+reverse_indicators = ["Percentage of the children aged under 5 years who are stunted"] #Add names of reversed indicators here
+
+for goal in goals:
+    label_colour = "#007efc"
+    colorscale = 'Reds'
+    if(goal in reverse_indicators):
+        colorscale += "_r"
+    merged = map_df.set_index('DIST_NAME').join(df.set_index('DIST_NAME'))
+    fig = px.choropleth(
+            df, geojson=merged.geometry,
+            hover_name="DIST_NAME",
+            hover_data={
+                'DIST_NAME': False,
+                goal: True,
+            },
+            color=goal,
+            color_continuous_scale=colorscale,
+            locations="DIST_NAME",
+            title=goal,
+            )
+    fig.update_geos(fitbounds="locations", visible=False)
+    fig.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=16,
+            font_family="Rockwell"
         )
-fig.update_geos(fitbounds="locations", visible=False)
-fig.update_layout(
-    hoverlabel=dict(
-        bgcolor="white",
-        font_size=16,
-        font_family="Rockwell"
     )
-)
-fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
-    lat=merged["Latitude"],
-    text='<a style="text-decoration: none;" href="https://google.com">'+merged.index+'</a>',
-    textposition="middle right",
-    mode='text',
-    textfont=dict(
-    color='white',
-    size=12,
-), hoverinfo="skip",
-    showlegend=False))
-fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
-    lat=merged["Latitude"],
-    text=merged.index,
-    textposition="middle right",
-    mode='text',
-    textfont=dict(
-    color=label_colour,
-    size=12,
-), hoverinfo="skip",
-    showlegend=False))
-fig.update_layout(
-    autosize=False,
-    height=720,
-    width=1080)
+    fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
+        lat=merged["Latitude"],
+        text='<a style="text-decoration: none;" href="https://google.com">'+merged.index+'</a>',
+        textposition="middle right",
+        mode='text',
+        textfont=dict(
+        color='white',
+        size=12,
+    ), hoverinfo="skip",
+        showlegend=False))
+    fig.add_trace(go.Scattergeo(lon=merged["Longitude"],
+        lat=merged["Latitude"],
+        text=merged.index,
+        textposition="middle right",
+        mode='text',
+        textfont=dict(
+        color=label_colour,
+        size=12,
+    ), hoverinfo="skip",
+        showlegend=False))
+    fig.update_layout(
+        autosize=False,
+        height=720,
+        width=1080)
 
-#fig.add_scattergeo(lat=merged['Latitude'], lon=merged['Longitude'],text="DIST_NAME",showlegend=False)
-fig.update_layout(coloraxis_showscale=False)
-
-fig2 = px.choropleth(
-        df, geojson=merged.geometry,
-        hover_name="DIST_NAME",
-        hover_data={
-            'DIST_NAME': False,
-            'Category': False,
-            goal: True,
-        },
-        color="Category",
-        color_discrete_map=colour_map,
-        locations="DIST_NAME",
-        title=goal,
-        )
-fig2.update_geos(fitbounds="locations", visible=False)
-fig2.update_layout(
-    hoverlabel=dict(
-        bgcolor="white",
-        font_size=16,
-        font_family="Rockwell"
-    )
-)
-fig2.update_layout(showlegend=False)
-fig2.add_trace(go.Scattergeo(lon=merged["Longitude"],
-    lat=merged["Latitude"],
-    text='<a style="text-decoration: none;" href="https://google.com">'+merged.index+'</a>',
-    textposition="middle right",
-    mode='text',
-    textfont=dict(
-    color='white',
-    size=12,
-), hoverinfo="skip",
-    showlegend=False))
-#fig.add_scattergeo(lat=merged['Latitude'], lon=merged['Longitude'],text="DIST_NAME",showlegend=False)
-fig2.add_trace(go.Scattergeo(lon=merged["Longitude"],
-              lat=merged["Latitude"],
-              text=merged.index,
-              textposition="middle right",
-               mode='text',
-               textfont=dict(
-            color=merged['Category'].map(get_complementary),
-            size=12,
-            
-        ),
-        hoverinfo="skip",
-              showlegend=False))
-fig2.update_layout(
-    autosize=False,
-    height=720,
-    width=1080)
-#fig.write_html("map_html.html") to save html
-#fig.show() #to open in the browser
-
-app = JupyterDash(__name__)
-app.layout = html.Div(children=[    
-    dcc.Graph(
-        id='choropleth',
+    fig.update_layout(coloraxis_showscale=False)
+    graphs.append(dcc.Graph(
+        id=goal,
         figure=fig,
         config={
             'displaylogo': False
         }
-    ),
-    dcc.Graph(
-        id='choropleth2',
-        figure=fig2,
-        config={
-            'displaylogo': False
-        }
-    )
-],style={'display':'flex'})
+    ))
+
+app.layout = html.Div(children=graphs)
 
 #-------------------------------#
 
